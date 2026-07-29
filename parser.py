@@ -8,7 +8,6 @@ class Config:
 	maze_exit: tuple[int, int]
 	output_file: str
 	perfect: bool
-	seed: int
 
 def read_config_file(read_file_path: str) -> dict[str, str]:
 	raw_data: dict[str, str] = {}
@@ -37,7 +36,7 @@ def parse_config(file_path: str) -> Config:
 
 	missing_keys = required_keys - raw_data.keys()
 	if missing_keys:
-		raise ValueError(f"Missing mandatory keys")
+		raise ValueError("Missing mandatory keys")
 
 	try:
 		width = int(raw_data["WIDTH"])
@@ -53,30 +52,28 @@ def parse_config(file_path: str) -> Config:
 
 	try:
 		x_entry, y_entry = m_entry.split(",")
-		x_exit, y_exit = m_exit.split(",")
-		
+		x_exit, y_exit = m_exit.split(",")	
 	except ValueError:
-		raise ValueError("ENTRY and EXIT must be formated as x, y")
+		raise ValueError("ENTRY and EXIT must be formated as x, y")	
 
 	try:
 		maze_entry: tuple[int, int] = (int(x_entry), int(y_entry))
 		maze_exit: tuple[int, int] =  (int(x_exit), int(y_exit))
 	except ValueError:
 		raise ValueError("ENTRY and EXIT must be a positive integer")
+
+	if not (0 <= maze_entry[0] < width and 0 <= maze_entry[1] < height):
+		raise ValueError("ENTRY coordinates is out of grid bounds")
+	if not (0 <= maze_exit[0] < width and 0 <= maze_exit[1] < height):
+		raise ValueError("EXIT coordinates is out of grid bounds")
+
+	if maze_entry == maze_exit:
+		raise ValueError("ENTRY and EXIT coordanates cannot be identical")
 	
-	perfect = raw_data["PERFECT"]
-	if not perfect == "True" or perfect == "False":
-		raise ValueError("Perfect must be either TRUE or FALSE")
-
-	try:
-		perfect = bool(perfect)
-	except ValueError:
-		raise ValueError("Need to be bool")
-
-	try:
-		seed = int(raw_data["SEED"])
-	except ValueError:
-		raise ValueError("SEED must be a positive integer")
+	perfect_raw = raw_data["PERFECT"].lower()
+	if perfect_raw not in ("true", "false"):
+		raise ValueError("Perfect must be True or False")
+	perfect = perfect_raw == "true"
 	
 	output_file = raw_data["OUTPUT_FILE"]
 	if not output_file:
@@ -87,10 +84,11 @@ def parse_config(file_path: str) -> Config:
 	except ValueError:
 		raise ValueError("OUTPUT_FILE must be a string")
 
-	return (width,
-			height,
-			m_entry,
-			m_exit,
-			output_file,
-			perfect,
-			seed)
+	return Config(
+			width=width,
+			height=height,
+			maze_entry=maze_entry,
+			maze_exit=maze_exit,
+			output_file=output_file,
+			perfect=perfect
+			)
