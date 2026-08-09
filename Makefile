@@ -9,8 +9,9 @@ venv:
 	python3 -m venv .venv
 debug: 
 	python3 -m pdb $(ENTRY) $(CONFIG)
-clean: 
-	rm -rf __pycache__ .mypy_cache
+clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} + 
+	rm -rf .mypy_cache
 lint: 
 	flake8 . --exclude=.venv
 	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

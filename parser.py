@@ -9,6 +9,7 @@ class Config:
     maze_exit: tuple[int, int]
     output_file: str
     perfect: bool
+    seed: int | None = None
 
 
 def read_config_file(read_file_path: str) -> dict[str, str]:
@@ -33,6 +34,14 @@ def read_config_file(read_file_path: str) -> dict[str, str]:
 
 def parse_config(file_path: str) -> Config:
     raw_data = read_config_file(file_path)
+
+    seed = None
+    if "SEED" in raw_data and raw_data["SEED"]:
+        try:
+            seed = int(raw_data["SEED"])
+        except ValueError:
+            raise ValueError("SEED must be an integer")
+
 
     required_keys = {
                      "WIDTH",
@@ -100,4 +109,5 @@ def parse_config(file_path: str) -> Config:
         maze_exit=maze_exit,
         output_file=output_file,
         perfect=perfect,
+        seed=seed,
     )
