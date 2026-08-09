@@ -1,6 +1,3 @@
-import random
-
-
 class Maze:
     def __init__(self, width: int, height: int) -> None:
         self.width = width
@@ -47,4 +44,3 @@ class Maze:
             lines.append("".join(row))
 
         return "\n".join(lines)
-        

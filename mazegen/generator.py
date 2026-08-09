@@ -1,10 +1,11 @@
 import random
 from mazegen.maze import Maze
 
+
 class MazeGenerator:
     def __init__(self, maze: Maze, entry: tuple[int, int]) -> None:
         self.maze = maze
-        self.entry = entry        
+        self.entry = entry
         self.visited: set[tuple[int, int]] = {entry}
         self.stack: list[tuple[int, int]] = [entry]
         self.ways = {
@@ -56,8 +57,10 @@ class MazeGenerator:
                     neighbor_x = x + dir_x
                     neighbor_y = y + dir_y
 
-                    if (0 <= neighbor_x < self.maze.width and
-                        0 <= neighbor_y < self.maze.height):
+                    if (
+                        0 <= neighbor_x < self.maze.width
+                        and 0 <= neighbor_y < self.maze.height
+                    ):
 
                         self.maze.cells[(x, y)] &= ~curr_bit
                         self.maze.cells[(neighbor_x, neighbor_y)] &= ~n_bit

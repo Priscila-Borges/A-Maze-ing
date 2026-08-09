@@ -42,7 +42,6 @@ def parse_config(file_path: str) -> Config:
         except ValueError:
             raise ValueError("SEED must be an integer")
 
-
     required_keys = {
                      "WIDTH",
                      "HEIGHT",
