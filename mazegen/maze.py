@@ -8,6 +8,20 @@ class Maze:
             for y in range(self.height):
                 self.cells[(x, y)] = 15
 
+    def to_hex_grid(self) -> str:
+        lines = []
+
+        for y in range(self.height):
+            row = []
+            for x in range(self.width):
+                cell_value = self.cells[(x, y)]
+                hex_char = f"{cell_value:x}"
+                row += hex_char
+
+            lines.append(row)
+
+        return "\n".join(lines)
+
     def render(self) -> str:
         grid_height = self.height * 2 + 1
         grid_width = self.width * 2 + 1

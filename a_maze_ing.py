@@ -4,6 +4,15 @@ from parser import parse_config
 from mazegen.maze import Maze
 from mazegen.generator import MazeGenerator
 
+def write_output_file(
+    file_path: str,
+    maze: Maze,
+    maze_entry: tuple[int, int],
+    maze_exit: tuple[int, int],
+    path: str = "",
+) -> None:
+
+
 
 def main() -> None:
     if len(sys.argv) != 2:
