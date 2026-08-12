@@ -1,8 +1,18 @@
-Bit Direction
-0   North
-1   East
-2   South
-3   West
+91139157913953b
+86ac6a956ac696a
+ad4796a97c13ad2
+c553a96a93a8456
+913ac43c02c4553
+aaec13c3ec39552
+ac39683c53ac3ba
+e92c3e855447a86
+96abc38539556c3
+a9403a83ac393d2
+ac52ac6ac146c3a
+a93ac53ad4557ae
+aec4552c55553c3
+85553d479553c52
+c557c555457c556
 
-the entry coordinates, the exit coordinates, and the shortest valid path from
-entry to exit, using the four letters N , E , S , W .
+0,0
+4,0

@@ -12,13 +12,12 @@ class Maze:
         lines = []
 
         for y in range(self.height):
-            row = []
+            row_str = ""
             for x in range(self.width):
                 cell_value = self.cells[(x, y)]
-                hex_char = f"{cell_value:x}"
-                row += hex_char
+                row_str += f"{cell_value:x}"
 
-            lines.append(row)
+            lines.append(row_str)
 
         return "\n".join(lines)
 

@@ -3,6 +3,8 @@ import sys
 from parser import parse_config
 from mazegen.maze import Maze
 from mazegen.generator import MazeGenerator
+from display import start_display
+
 
 def write_output_file(
     file_path: str,
@@ -12,12 +14,24 @@ def write_output_file(
     path: str = "",
 ) -> None:
 
+    hex_grid = maze.to_hex_grid()
+
+    lines = [
+        hex_grid,
+        "",
+        f"{maze_entry[0]},{maze_entry[1]}",
+        f"{maze_exit[0]},{maze_exit[1]}",
+        path,
+    ]
+
+    with open(file_path, "w") as file:
+        file.write("\n".join(lines))
 
 
 def main() -> None:
     if len(sys.argv) != 2:
         print("Error: Missing configuration file.", file=sys.stderr)
-        print("Usage: python3 a_maze_ing.py <config_file>", file=sys.strerr)
+        print("Usage: python3 a_maze_ing.py <config_file>", file=sys.stderr)
         sys.exit(1)
 
     config_file = sys.argv[1]
@@ -29,16 +43,24 @@ def main() -> None:
             random.seed(config_data.seed)
 
         grid = Maze(config_data.width, config_data.height)
-        builder = MazeGenerator(
-            grid, (config_data.maze_entry[0], config_data.maze_entry[1])
-        )
+        builder = MazeGenerator(grid, config_data.maze_entry)
 
         builder.generate()
 
         if not config_data.perfect:
             builder.make_imperfect()
 
-        print(grid.render())
+        maze_string = grid.render()
+        # print(maze_string)
+        start_display(config_data, maze_string)
+
+        write_output_file(
+            file_path=config_data.output_file,
+            maze=grid,
+            maze_entry=config_data.maze_entry,
+            maze_exit=config_data.maze_exit,
+            path="",
+        )
 
     except FileNotFoundError:
         print(f"Error: File '{config_file}' not found.", file=sys.stderr)
