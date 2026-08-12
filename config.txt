@@ -3,5 +3,5 @@ HEIGHT=15
 ENTRY=0,0
 EXIT=4,0
 OUTPUT_FILE=output_maze.txt
-PERFECT=True
+PERFECT=False
 SEED=
