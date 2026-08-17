@@ -75,11 +75,16 @@ class MazeGenerator:
                     self._open_random_wall(x, y)
 
     def _remove_dead_ends(self) -> None:
-        """Finds cells with 3 walls intact and opens one side."""
-        for x in range(self.maze.width):
-            for y in range(self.maze.height):
-                if self._count_walls(x, y) == 3:
-                    self._open_random_wall(x, y)
+        """Repeatedly finds cells with 3 walls intact and opens one side until none remain."""
+        has_dead_ends = True
+
+        while has_dead_ends:
+            has_dead_ends = False
+            for x in range(self.maze.width):
+                for y in range(self.maze.height):
+                    if self._count_walls(x, y) == 3:
+                        self._open_random_wall(x, y)
+                        has_dead_ends = True
 
     def _count_walls(self, x: int, y: int) -> int:
         """Counts how many of the 4 walls are closed for a cell."""
@@ -98,7 +103,7 @@ class MazeGenerator:
         return walls
 
     def _open_random_wall(self, x: int, y: int) -> None:
-        """Attempts to break a wall between cell (x, y) and a valid neighbor."""
+        """Attempts to break a CLOSED wall between cell (x, y) and a valid neighbor."""
         directions = list(self.ways.keys())
         random.shuffle(directions)
 
@@ -107,6 +112,7 @@ class MazeGenerator:
             nx, ny = x + dx, y + dy
 
             if 0 <= nx < self.maze.width and 0 <= ny < self.maze.height:
-                self.maze.cells[(x, y)] &= ~curr_bit
-                self.maze.cells[(nx, ny)] &= ~n_bit
-                break    
+                if self.maze.cells[(x, y)] & curr_bit:
+                    self.maze.cells[(x, y)] &= ~curr_bit
+                    self.maze.cells[(nx, ny)] &= ~n_bit
+                    break
