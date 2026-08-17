@@ -1,11 +1,14 @@
 import random
+import sys
 from mazegen.maze import Maze
 
 
 class MazeGenerator:
-    def __init__(self, maze: Maze, entry: tuple[int, int]) -> None:
+    def __init__(self, maze: Maze, entry: tuple[int, int], exit: tuple[int, int]) -> None:
         self.maze = maze
         self.entry = entry
+        self.exit = exit
+        self.reserved_cells = self._get_42_cells()
         self.visited: set[tuple[int, int]] = {entry}
         self.stack: list[tuple[int, int]] = [entry]
         self.ways = {
@@ -14,9 +17,63 @@ class MazeGenerator:
             "S": (0, 1, 4, 1),
             "W": (-1, 0, 8, 2),
         }
+        
+        for x, y in self.reserved_cells:
+            self.visited.add((x, y))
+
+    def _get_42_cells(self) -> set[tuple[int, int]]:
+        """Returns the set of (x, y) coordinates forming the '42' logo.
+        Omits the logo and logs to stderr if the grid is too small or if
+        the entry/exit points collide with the pattern.
+        """
+
+        if self.maze.width < 7 or self.maze.height < 5:
+            print("Error: Maze size is too small for '42' pattern. Omitting pattern.", file=sys.stderr)
+            return set ()
+
+        cx = self.maze.width // 2
+        cy = self.maze.height // 2
+
+        # Offsets relative to center (dx, dy)
+        offsets = [
+            # Digit '4'
+            (-3, -2),
+            (-3, -1),
+            (-3, 0),
+            (-2, 0),
+            (-1, 0),
+            (-1, 1),
+            (-1, 2),
+            # Digit '2'
+            (1, -2),
+            (2, -2),
+            (3, -2),
+            (3, -1),
+            (1, 0),
+            (2, 0),
+            (3, 0),
+            (1, 1),
+            (1, 2),
+            (2, 2),
+            (3, 2),
+        ]
+
+        reserved = set()
+        for dx, dy in offsets:
+            cell_x = cx + dx
+            cell_y = cy + dy
+
+            if 0 <= cell_x < self.maze.width and 0 <= cell_y < self.maze.height:
+                reserved.add((cell_x, cell_y))
+
+        if self.entry in reserved or self.exit in reserved:
+            print("Error: Entry or exit point collides with '42' pattern. Omitting pattern.", file=sys.stderr)
+            return set()
+
+        return reserved
 
     # DFS algorithm to open the walls and create perfect maze
-    def generate(self) -> None:
+    def generate(self) -> None:        
         while self.stack:
             curr_x, curr_y = self.stack[-1]
             neighbors = []
@@ -29,14 +86,10 @@ class MazeGenerator:
                     and 0 <= neighbor_y < self.maze.height
                 ):
                     if (neighbor_x, neighbor_y) not in self.visited:
-                        neighbors.append(
-                            (neighbor_x, neighbor_y, curr_bit, n_bit)
-                        )
+                        neighbors.append((neighbor_x, neighbor_y, curr_bit, n_bit))
 
             if neighbors:
-                neighbor_x, neighbor_y, curr_bit, n_bit = random.choice(
-                    neighbors
-                )
+                neighbor_x, neighbor_y, curr_bit, n_bit = random.choice(neighbors)
 
                 self.maze.cells[(curr_x, curr_y)] &= ~curr_bit
                 self.maze.cells[(neighbor_x, neighbor_y)] &= ~n_bit
@@ -57,11 +110,11 @@ class MazeGenerator:
         center_y = self.maze.height // 2
 
         key_cells = [
-            (0, 0), #top-left
-            (self.maze.width -1, 0), #top-right
-            (0, self.maze.height -1), #bottom-left
-            (self.maze.width -1, self.maze.height -1), #bottom-right
-            (center_x, center_y), #center
+            (0, 0),  # top-left
+            (self.maze.width - 1, 0),  # top-right
+            (0, self.maze.height - 1),  # bottom-left
+            (self.maze.width - 1, self.maze.height - 1),  # bottom-right
+            (center_x, center_y),  # center
         ]
 
         for x, y in key_cells:
@@ -70,7 +123,7 @@ class MazeGenerator:
     def _create_loops(self) -> None:
         """Randomly knocks down interior walls to create loops."""
         for x in range(self.maze.width - 1):
-            for y in range(self.maze.height -1):
+            for y in range(self.maze.height - 1):
                 if random.random() < 0.15:
                     self._open_random_wall(x, y)
 
@@ -82,9 +135,9 @@ class MazeGenerator:
             has_dead_ends = False
             for x in range(self.maze.width):
                 for y in range(self.maze.height):
-                    if self._count_walls(x, y) == 3:
-                        self._open_random_wall(x, y)
-                        has_dead_ends = True
+                    if (x, y) not in self.reserved_cells and self._count_walls(x, y) == 3:
+                        if self._open_random_wall(x, y):
+                            has_dead_ends = True
 
     def _count_walls(self, x: int, y: int) -> int:
         """Counts how many of the 4 walls are closed for a cell."""
@@ -102,8 +155,11 @@ class MazeGenerator:
 
         return walls
 
-    def _open_random_wall(self, x: int, y: int) -> None:
+    def _open_random_wall(self, x: int, y: int) -> bool:
         """Attempts to break a CLOSED wall between cell (x, y) and a valid neighbor."""
+        if (x, y) in self.reserved_cells:
+            return False
+
         directions = list(self.ways.keys())
         random.shuffle(directions)
 
@@ -112,7 +168,11 @@ class MazeGenerator:
             nx, ny = x + dx, y + dy
 
             if 0 <= nx < self.maze.width and 0 <= ny < self.maze.height:
+                if (nx, ny) in self.reserved_cells:
+                    continue
+
                 if self.maze.cells[(x, y)] & curr_bit:
                     self.maze.cells[(x, y)] &= ~curr_bit
                     self.maze.cells[(nx, ny)] &= ~n_bit
-                    break
+                    return True
+        return False
