@@ -156,7 +156,8 @@ class MazeGenerator:
         return walls
 
     def _open_random_wall(self, x: int, y: int) -> bool:
-        """Attempts to break a CLOSED wall between cell (x, y) and a valid neighbor."""
+        """Attempts to break a CLOSED wall between cell (x, y) and a valid neighbor,
+        without creating a 3x3 fully-open area."""
         if (x, y) in self.reserved_cells:
             return False
 
@@ -167,12 +168,56 @@ class MazeGenerator:
             dx, dy, curr_bit, n_bit = self.ways[direction]
             nx, ny = x + dx, y + dy
 
-            if 0 <= nx < self.maze.width and 0 <= ny < self.maze.height:
-                if (nx, ny) in self.reserved_cells:
-                    continue
+            if not (0 <= nx < self.maze.width and 0 <= ny < self.maze.height):
+                continue
+            if (nx, ny) in self.reserved_cells:
+                continue
+            if not (self.maze.cells[(x, y)] & curr_bit):
+                continue  # already open
 
-                if self.maze.cells[(x, y)] & curr_bit:
-                    self.maze.cells[(x, y)] &= ~curr_bit
-                    self.maze.cells[(nx, ny)] &= ~n_bit
-                    return True
+            # Tentatively open the wall
+            self.maze.cells[(x, y)] &= ~curr_bit
+            self.maze.cells[(nx, ny)] &= ~n_bit
+
+            # Figure out which 3x3 blocks could now be fully open because of this edge
+            if nx != x:  # horizontal edge: blocks whose columns straddle x/nx
+                col_range = (x - 1, x)
+                row_range = (y - 2, y - 1, y)
+            else:  # vertical edge: blocks whose rows straddle y/ny
+                col_range = (x - 2, x - 1, x)
+                row_range = (y - 1, y)
+
+            creates_3x3 = False
+            for bx in col_range:
+                if creates_3x3 or not (0 <= bx and bx + 2 < self.maze.width):
+                    continue
+                for by in row_range:
+                    if not (0 <= by and by + 2 < self.maze.height):
+                        continue
+
+                    fully_open = True
+                    for i in range(3):
+                        if not fully_open:
+                            break
+                        for j in range(3):
+                            cell = self.maze.cells[(bx + i, by + j)]
+                            if i < 2 and (cell & 2):   # E wall closed
+                                fully_open = False
+                                break
+                            if j < 2 and (cell & 4):   # S wall closed
+                                fully_open = False
+                                break
+
+                    if fully_open:
+                        creates_3x3 = True
+                        break
+
+            if creates_3x3:
+                self.maze.cells[(x, y)] |= curr_bit
+                self.maze.cells[(nx, ny)] |= n_bit
+                continue
+
+            return True
+
         return False
+
