@@ -61,8 +61,8 @@ def parse_config(file_path: str) -> Config:
     except ValueError:
         raise ValueError("WIDTH and HEIGHT must be valid integers.")
 
-    if width <= 0 or height <= 0:
-        raise ValueError("WIDTH and HEIGHT must be greater than 0.")
+    if width <= 1 or height <= 1:
+        raise ValueError("WIDTH and HEIGHT must be greater than 1.")
 
     m_entry = raw_data["ENTRY"]
     m_exit = raw_data["EXIT"]
