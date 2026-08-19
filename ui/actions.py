@@ -1,14 +1,16 @@
+# Built-in modules
+import curses
 import random
 import time
-import curses
+
+# Project modules
 from ui.maze_window import MazeWindow
-from ui.menu_window import MenuPanel
 
 
 def quit_action(
                 stdscr: curses.window
                 ) -> None:
-
+    """Displays the screen before exiting the program"""
     text = "see ya!"
     y, x = stdscr.getmaxyx()
 
@@ -21,20 +23,10 @@ def quit_action(
     time.sleep(1)
 
 
-def return_action(
-                menu_panel: MenuPanel,
-                stdscr: curses.window
-                ) -> None:
-
-    del menu_panel
-
-    stdscr.touchwin()
-    stdscr.refresh()
-
-
 def change_color_action(
                     maze_win: MazeWindow
                     ) -> None:
+    """Changes the color of the maze walls."""
 
     foreground, background = curses.pair_content(1)
 
@@ -52,6 +44,4 @@ def change_color_action(
     new_foreground = random.choice(colors)
     curses.init_pair(3, new_foreground, background)
     maze_win.color_style = curses.color_pair(3)
-    maze_win.print_maze()
-    maze_win.print_entry_exit()
-    maze_win.print_42()
+    maze_win.redraw()

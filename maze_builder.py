@@ -1,9 +1,10 @@
+# Built-in modules
 import random
+
+# Project modules
 from dataclasses import dataclass
-from parser import parse_config
-from parser import Config
-from mazegen.maze import Maze
-from mazegen.generator import MazeGenerator
+from parser import Config, parse_config
+from mazegen import Maze, MazeGenerator
 
 
 @dataclass
@@ -73,12 +74,12 @@ def build_maze(config_file: str) -> MazeState:
     maze_string = grid.render()
 
     write_output_file(
-                config_data.output_file,
-                grid,
-                config_data.maze_entry,
-                config_data.maze_exit,
-                ""
-                )
+                    config_data.output_file,
+                    grid,
+                    config_data.maze_entry,
+                    config_data.maze_exit,
+                    ""
+                    )
 
     return MazeState(
             config_file=config_file,

@@ -1,6 +1,9 @@
+# Built-in modules
 import sys
-from ui.display import start_display
+
+# Project modules
 from maze_builder import build_maze
+from ui.display import start_display
 
 
 '''

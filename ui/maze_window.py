@@ -1,19 +1,24 @@
+# Built-in modules
 import curses
-from ui.menu_window import MenuPanel
+
+# Project modules
 from maze_builder import MazeState
+from ui.menu_window import MenuWindow
 
 
 class MazeWindow():
+    """Display the maze and its visual elements inside a curses window."""
 
     CELL_H = 2
     CELL_W = 4
 
     def __init__(
             self,
-            maze_panel: MenuPanel,
+            maze_menu_win: MenuWindow,
             state: MazeState,
             screen: curses.window
             ) -> None:
+        """Initialize and display the maze window beside the menu panel."""
 
         self.state = state
         self.maze_string = self.state.maze_string
@@ -22,15 +27,20 @@ class MazeWindow():
                                                 self.state.config_data.height,
                                                 self.state.config_data.width
                                                 )
-        self.top, self.left, self.right = self.calculate_position(
-                                                                maze_panel,
+        self.top, self.left, self.right = self._calculate_position(
+                                                                maze_menu_win,
                                                                 screen
                                                                 )
         self.color_style = curses.color_pair(1)
-        self.create_window()
-        self.print_maze()
-        self.print_entry_exit()
-        self.print_42()
+        self._create_window()
+        self._print_maze()
+        self._print_entry_exit()
+        self._print_42()
+
+    def redraw(self) -> None:
+        self._print_maze()
+        self._print_entry_exit()
+        self._print_42()
 
     @classmethod
     def calculate_size(
@@ -38,6 +48,7 @@ class MazeWindow():
                     maze_h: int,
                     maze_w: int
                     ) -> tuple[int, int]:
+        """Calculate the window size required to display the maze."""
 
         grid_h = maze_h * cls.CELL_H + 1
         grid_w = maze_w * cls.CELL_W + 1
@@ -46,19 +57,35 @@ class MazeWindow():
 
         return (maze_win_h, maze_win_w)
 
-    def calculate_position(
+    @classmethod
+    def calculate_max_size(
+                        cls,
+                        available_h: int,
+                        available_w: int
+                        ) -> tuple[int, int]:
+        """Calculate the maximal maze size to display on this window."""
+
+        max_grid_h = available_h - cls.CELL_H
+        max_grid_w = available_w - cls.CELL_W
+        max_maze_h = (max_grid_h - 1)//cls.CELL_H
+        max_maze_w = (max_grid_w - 1)//cls.CELL_W
+
+        return (max_maze_h, max_maze_w)
+
+    def _calculate_position(
                         self,
-                        maze_panel: MenuPanel,
+                        maze_menu_win: MenuWindow,
                         screen: curses.window
                         ) -> tuple[int, int, int]:
+        """Calculate the maze window position and ensure it fits on screen."""
 
         screen_h, screen_w = screen.getmaxyx()
         padding = 1
 
         top = (screen_h - self.h)//2
         left = (
-                maze_panel.right
-                + (screen_w - maze_panel.right)//2
+                maze_menu_win.right
+                + (screen_w - maze_menu_win.right)//2
                 - self.w//2
                 - padding
                 )
@@ -79,9 +106,10 @@ class MazeWindow():
         else:
             return (top, left, right)
 
-    def create_window(
+    def _create_window(
                     self
                     ) -> None:
+        """Create and configure the curses window used to display the maze."""
 
         self.window = curses.newwin(self.h, self.w, self.top, self.left)
 
@@ -90,9 +118,10 @@ class MazeWindow():
         self.window.border()
         self.window.refresh()
 
-    def print_maze(
+    def _print_maze(
                 self
                 ) -> None:
+        """Draw the maze walls inside the maze window."""
 
         y_axis_walls = self.CELL_H//2
         x_axis_walls = self.CELL_W//2
@@ -108,9 +137,10 @@ class MazeWindow():
 
         self.window.refresh()
 
-    def print_entry_exit(
+    def _print_entry_exit(
                 self
                 ) -> None:
+        """Draw the maze entry and exit markers at their cell positions."""
 
         y_axis_path = self.CELL_H
         x_axis_path = self.CELL_W - 1
@@ -136,9 +166,10 @@ class MazeWindow():
                            )
         self.window.refresh()
 
-    def print_42(
+    def _print_42(
                 self
                 ) -> None:
+        """Highlight the cells reserved for the 42 pattern."""
 
         pattern = self.state.reserved_cells
 

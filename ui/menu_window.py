@@ -1,3 +1,4 @@
+# Built-in modules
 import curses
 from typing import Literal
 
@@ -6,62 +7,76 @@ MenuPositions = Literal["center", "left"]
 
 
 class Menu:
+    """Store menu content and manage the currently selected action."""
+
     def __init__(
                 self,
                 header: str,
                 actions: list[str]
                 ) -> None:
+        """Initialize a menu with a header and a list of actions."""
 
         self.header = header
         self.actions = actions
         self.selected_row_idx = 0
 
     def move_up(self) -> None:
+        """Move the selection up by one action when possible."""
+
         if self.selected_row_idx > 0:
             self.selected_row_idx -= 1
 
     def move_down(self) -> None:
+        """Move the selection down by one action when possible."""
+
         if self.selected_row_idx < len(self.actions) - 1:
             self.selected_row_idx += 1
 
     def selected_action(self) -> str:
+        """Return the currently selected action."""
+
         return self.actions[self.selected_row_idx]
 
 
-class MenuPanel():
+class MenuWindow():
+    """Display an interactive menu inside a curses window."""
+
     def __init__(
                 self,
                 menu: Menu,
                 position: MenuPositions,
                 screen: curses.window
                 ) -> None:
+        """Initialize and display a menu panel at the requested position."""
 
         self.menu = menu
         self.position = position
         self.h, self.w = self.calculate_size(menu)
-        self.top, self.left, self.right = self.calculate_position(screen)
-        self.create_window()
-        self.print_menu()
+        self.top, self.left, self.right = self._calculate_position(screen)
+        self._create_window()
+        self._print_menu()
 
     @staticmethod
     def calculate_size(
                     menu: Menu
                     ) -> tuple[int, int]:
+        """Calculate the panel size required to display the menu."""
 
         vertical_padding = 6
         horizontal_padding = 4
 
-        panel_h: int = len(menu.actions) + vertical_padding
+        menu_win_h: int = len(menu.actions) + vertical_padding
         width_actions: int = max(len(row) for row in menu.actions)
         width_header: int = len(menu.header)
-        panel_w = max(width_actions, width_header) + horizontal_padding
+        menu_win_w = max(width_actions, width_header) + horizontal_padding
 
-        return (panel_h, panel_w)
+        return (menu_win_h, menu_win_w)
 
-    def calculate_position(
+    def _calculate_position(
                         self,
                         screen: curses.window
                         ) -> tuple[int, int, int]:
+        """Calculate the panel position and ensure it fits on the screen."""
 
         screen_h, screen_w = screen.getmaxyx()
         padding = 2
@@ -91,9 +106,10 @@ class MenuPanel():
         else:
             return (top, left, right)
 
-    def create_window(
+    def _create_window(
                         self
                         ) -> None:
+        """Create and configure the curses window used by the panel."""
 
         self.window = curses.newwin(self.h, self.w, self.top, self.left)
 
@@ -102,9 +118,10 @@ class MenuPanel():
         self.window.border()
         self.window.refresh()
 
-    def print_menu(
+    def _print_menu(
                     self
                     ) -> None:
+        """Draw the menu and highlight the currently selected action."""
 
         self.window.border()
         x = self.w//2 - len(self.menu.header)//2
@@ -123,15 +140,16 @@ class MenuPanel():
         self.window.refresh()
 
     def navigate_menu(
-                        self
-                        ) -> str | None:
+                    self
+                    ) -> str | None:
+        """Handle keyboard navigation and return the selected action."""
 
         self.window.clear()
         self.window.refresh()
 
         while True:
             self.window.clear()
-            self.print_menu()
+            self._print_menu()
 
             key = self.window.getch()
 
@@ -147,6 +165,10 @@ class MenuPanel():
             elif key == 27:
                 return None
 
-    def clear(self) -> None:
+    def clear(
+            self
+            ) -> None:
+        """Clear the panel window from the screen."""
+
         self.window.clear()
         self.window.refresh()
